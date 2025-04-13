@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ ticker }} Dividend Data{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ ticker }} - {{ company_name }} Dividend History</h2>
+        <div>
+            <a href="{{ url_for('stock_data', symbol=ticker) }}" class="btn btn-outline-primary mr-2">
+                <i class="fas fa-chart-line"></i> Back to Stock Data
+            </a>
+            <a href="{{ url_for('view_portfolio') }}" class="btn btn-outline-primary">
+                <i class="fas fa-briefcase"></i> My Portfolio
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-money-bill-wave text-success"></i> Dividend Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="summary-item">
+                        <span class="summary-label">Current Price:</span>
+                        <span class="summary-value">${{ "%.2f"|format(current_price) }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Annual Dividend Rate:</span>
+                        <span class="summary-value">${{ "%.2f"|format(trailing_annual_dividend_rate) }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Dividend Yield:</span>
+                        <span class="summary-value {% if dividend_yield > 3 %}text-success{% endif %}">
+                            {{ "%.2f"|format(dividend_yield) }}%
+                        </span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Latest Dividend:</span>
+                        <span class="summary-value">${{ "%.4f"|format(latest_dividend.amount) }} on {{ latest_dividend.date }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Average Dividend:</span>
+                        <span class="summary-value">${{ "%.4f"|format(avg_dividend) }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Total Dividends (History):</span>
+                        <span class="summary-value">${{ "%.2f"|format(total_dividends) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-alt"></i> Dividend History</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dividendChart" width="100%" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list"></i> Dividend Payments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Payment Date</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for div in dividend_data %}
+                                <tr>
+                                    <td>{{ div.date }}</td>
+                                    <td>${{ "%.4f"|format(div.amount) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .summary-item {
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+    }
+    .summary-label {
+        font-weight: 600;
+        color: #555;
+    }
+    .summary-value {
+        font-weight: 600;
+    }
+    .text-success {
+        color: #28a745;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Create charts when the document is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dividend history chart
+        var dividendCtx = document.getElementById('dividendChart').getContext('2d');
+        var dividendData = {
+            labels: [{% for div in dividend_data %}'{{ div.date }}',{% endfor %}],
+            datasets: [{
+                label: 'Dividend Amount',
+                data: [{% for div in dividend_data %}{{ div.amount }},{% endfor %}],
+                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 1
+            }]
+        };
+        
+        var dividendChart = new Chart(dividendCtx, {
+            type: 'bar',
+            data: dividendData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Dividend Amount ($)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Payment Date'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: '{{ ticker }} - Dividend Payment History'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

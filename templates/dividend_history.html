@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Dividend History{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-history text-primary"></i> Dividend Payment History</h2>
+        <div>
+            <a href="{{ url_for('dividend_income') }}" class="btn btn-success mr-2">
+                <i class="fas fa-money-bill-wave"></i> Dividend Income
+            </a>
+            <a href="{{ url_for('view_portfolio') }}" class="btn btn-outline-primary">
+                <i class="fas fa-briefcase"></i> Back to Portfolio
+            </a>
+        </div>
+    </div>
+    
+    {% if summary and summary.total_records > 0 %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-chart-pie"></i> Dividend Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="summary-box">
+                                <div class="summary-value text-primary">${{ "%.2f"|format(summary.total_received) }}</div>
+                                <div class="summary-label">Total Dividends Received</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="summary-box">
+                                <div class="summary-value text-primary">{{ summary.total_records }}</div>
+                                <div class="summary-label">Dividend Payments</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="summary-box">
+                                <div class="summary-value text-primary">{{ summary.unique_stocks }}</div>
+                                <div class="summary-label">Dividend Stocks</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="summary-box">
+                                <div class="summary-value text-primary">${{ "%.2f"|format(summary.total_received / summary.total_records) }}</div>
+                                <div class="summary-label">Average Payment</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h5>Historical Dividend Payments</h5>
+                            <canvas id="dividendHistoryChart" width="100%" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-table"></i> Dividend Payment Records</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="dividendTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Payment Date</th>
+                                    <th>Stock</th>
+                                    <th>Company</th>
+                                    <th>Shares</th>
+                                    <th>Amount/Share</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in dividend_records %}
+                                <tr>
+                                    <td>{{ record.payment_date }}</td>
+                                    <td>
+                                        <a href="{{ url_for('dividend_data', ticker=record.ticker_symbol) }}">
+                                            {{ record.ticker_symbol }}
+                                        </a>
+                                    </td>
+                                    <td>{{ record.company_name }}</td>
+                                    <td>{{ record.shares_owned }}</td>
+                                    <td>${{ "%.4f"|format(record.amount_per_share) }}</td>
+                                    <td class="text-success font-weight-bold">${{ "%.2f"|format(record.total_amount) }}</td>
+                                    <td>
+                                        {% if record.is_received %}
+                                            <span class="badge badge-success">Received</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-money-bill-wave fa-4x text-muted mb-3"></i>
+                    <h3>No Dividend Records Found</h3>
+                    <p class="lead">Update your dividend data to track your dividend income.</p>
+                    <a href="{{ url_for('update_dividend_history') }}" class="btn btn-success mt-3">
+                        <i class="fas fa-sync-alt"></i> Update Dividend Data
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .summary-box {
+        text-align: center;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+    .summary-value {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    .summary-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+    .text-primary {
+        color: #007bff;
+    }
+    .badge {
+        padding: 0.5em 0.75em;
+    }
+    .badge-success {
+        background-color: #28a745;
+    }
+    .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    #dividendTable {
+        font-size: 0.95rem;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dividend history chart
+        var ctx = document.getElementById('dividendHistoryChart').getContext('2d');
+        
+        var chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ months|tojson }},
+                datasets: [{
+                    label: 'Monthly Dividend Income',
+                    data: {{ totals|tojson }},
+                    backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Total Amount ($)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Monthly Dividend Income'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

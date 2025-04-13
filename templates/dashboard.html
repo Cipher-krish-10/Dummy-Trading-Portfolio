@@ -1,0 +1,529 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="welcome-section">
+        <h1>Welcome, {{ username }}</h1>
+        <div class="action-buttons">
+            <a href="{{ url_for('view_watchlist') }}" class="action-btn watchlist-btn">
+                <i class="fas fa-eye"></i> Watchlist
+            </a>
+            <a href="{{ url_for('view_transactions') }}" class="action-btn transactions-btn">
+                <i class="fas fa-history"></i> Transactions
+            </a>
+            <a href="{{ url_for('view_portfolio') }}" class="action-btn portfolio-btn">
+                <i class="fas fa-briefcase"></i> Portfolio
+            </a>
+        </div>
+    </div>
+    
+    <div class="popular-stocks-section">
+        <h2>Popular Stocks</h2>
+        <div class="stock-grid">
+            {% for stock in popular_stocks %}
+            <div class="stock-card">
+                <div class="stock-symbol">{{ stock }}</div>
+                <div class="stock-actions">
+                    <a href="{{ url_for('add_to_portfolio', ticker=stock) }}" class="stock-btn add-btn" title="Add to Portfolio">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                    <a href="{{ url_for('add_to_watchlist', ticker=stock) }}" class="stock-btn watch-btn" title="Add to Watchlist">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="stocks-database-section">
+        <div class="section-header">
+            <h2>Stock Database</h2>
+            <span class="stock-count">{{ stock_count }} stocks</span>
+            <a href="{{ url_for('populate_stocks_route') }}" class="populate-btn">
+                <i class="fas fa-sync-alt"></i> Update Database
+            </a>
+        </div>
+        
+        <div class="search-container">
+            <form action="{{ url_for('search_database_stocks') }}" method="post">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Search stocks by symbol or company name" name="search_term" required>
+                    <button type="submit">Search</button>
+                </div>
+            </form>
+        </div>
+        
+        {% if stocks %}
+        <div class="stock-table-container">
+            <table class="stock-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Company</th>
+                        <th>Price</th>
+                        <th>Sector</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in stocks %}
+                    <tr>
+                        <td class="symbol-cell">{{ stock.ticker_symbol }}</td>
+                        <td>{{ stock.company_name }}</td>
+                        <td class="price-cell">${{ stock.current_price }}</td>
+                        <td>{{ stock.market_sector }}</td>
+                        <td>
+                            <div class="action-group">
+                                <a href="{{ url_for('add_to_portfolio', ticker=stock.ticker_symbol) }}" class="table-btn add-btn" title="Add to Portfolio">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                                <a href="{{ url_for('add_to_watchlist', ticker=stock.ticker_symbol) }}" class="table-btn watch-btn" title="Add to Watchlist">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-database empty-icon"></i>
+            <p>No stocks found in the database</p>
+            <a href="{{ url_for('populate_stocks_route') }}" class="populate-btn-large">
+                <i class="fas fa-sync-alt"></i> Populate Stocks
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%);
+    }
+    
+    
+    .welcome-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e5edff;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #3b4cb8;
+        margin: 0;
+        text-shadow: 0 1px 1px rgba(0,0,0,0.05);
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 0.8rem;
+    }
+    
+    .action-btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .watchlist-btn {
+        background-color: #feffe6;
+        color: #d4b106;
+        border: 1px solid #fffbe6;
+        box-shadow: 0 2px 4px rgba(212, 177, 6, 0.1);
+    }
+    
+    .watchlist-btn:hover {
+        background-color: #fff7a8;
+        color: #aa8c00;
+    }
+    
+    .transactions-btn {
+        background-color: #f2f0ff;
+        color: #7a5af8;
+        border: 1px solid #ebe6ff;
+        box-shadow: 0 2px 4px rgba(122, 90, 248, 0.1);
+    }
+    
+    .transactions-btn:hover {
+        background-color: #e4dfff;
+        color: #6344e0;
+    }
+    
+    .portfolio-btn {
+        background-color: #0070f3;
+        color: white;
+        border: 1px solid #0068e1;
+        box-shadow: 0 2px 4px rgba(0, 112, 243, 0.2);
+    }
+    
+    .portfolio-btn:hover {
+        background-color: #005ccc;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    
+    .popular-stocks-section {
+        margin-bottom: 2.5rem;
+        background: linear-gradient(145deg, #ffffff, #f5f9ff);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 50, 150, 0.05);
+    }
+    
+    .popular-stocks-section h2 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #2d55a3;
+        margin-bottom: 1.2rem;
+    }
+    
+    .stock-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .stock-card {
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        padding: 1.2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        border-top: 4px solid transparent;
+    }
+    
+    .stock-card:nth-child(5n+1) {
+        border-top-color: #ff6b6b;
+    }
+    
+    .stock-card:nth-child(5n+2) {
+        border-top-color: #5ec576;
+    }
+    
+    .stock-card:nth-child(5n+3) {
+        border-top-color: #4dabf7;
+    }
+    
+    .stock-card:nth-child(5n+4) {
+        border-top-color: #9775fa;
+    }
+    
+    .stock-card:nth-child(5n+5) {
+        border-top-color: #ffa94d;
+    }
+    
+    .stock-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stock-symbol {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        color: #2c3e50;
+        background: linear-gradient(to right, #2c3e50, #4a6491);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .stock-actions {
+        display: flex;
+        justify-content: center;
+        gap: 0.8rem;
+    }
+    
+    .stock-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    .add-btn {
+        background: linear-gradient(145deg, #ebfff0, #d7f8e3);
+        color: #38a169;
+        box-shadow: 0 2px 4px rgba(56, 161, 105, 0.2);
+    }
+    
+    .add-btn:hover {
+        background: linear-gradient(145deg, #d7f8e3, #c3f0d3);
+        box-shadow: 0 4px 8px rgba(56, 161, 105, 0.3);
+    }
+    
+    .watch-btn {
+        background: linear-gradient(145deg, #e6f2ff, #d1e5ff);
+        color: #3182ce;
+        box-shadow: 0 2px 4px rgba(49, 130, 206, 0.2);
+    }
+    
+    .watch-btn:hover {
+        background: linear-gradient(145deg, #d1e5ff, #bacff0);
+        box-shadow: 0 4px 8px rgba(49, 130, 206, 0.3);
+    }
+    
+    .stock-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    
+    .stocks-database-section {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        border-left: 5px solid #0070f3;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #0070f3;
+        margin: 0;
+        margin-right: 1rem;
+    }
+    
+    .stock-count {
+        background: linear-gradient(145deg, #f0f6ff, #e2f0ff);
+        color: #3182ce;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-right: auto;
+        box-shadow: 0 2px 4px rgba(49, 130, 206, 0.1);
+    }
+    
+    .populate-btn {
+        background: linear-gradient(145deg, #38a169, #2f855a);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(47, 133, 90, 0.3);
+    }
+    
+    .populate-btn:hover {
+        background: linear-gradient(145deg, #2f855a, #276749);
+        box-shadow: 0 4px 8px rgba(47, 133, 90, 0.4);
+    }
+    
+    .search-container {
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-box {
+        display: flex;
+        position: relative;
+    }
+    
+    .search-icon {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        transform: translateY(-50%);
+        color: #0070f3;
+    }
+    
+    .search-box input {
+        flex: 1;
+        padding: 0.8rem 1rem 0.8rem 2.5rem;
+        border: 1px solid #d1e5ff;
+        border-radius: 8px 0 0 8px;
+        font-size: 0.95rem;
+        color: #4a5568;
+        outline: none;
+        transition: all 0.2s ease;
+        background-color: #f8faff;
+    }
+    
+    .search-box input:focus {
+        border-color: #63b3ed;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.2);
+    }
+    
+    .search-box button {
+        background: linear-gradient(145deg, #0070f3, #005bd1);
+        color: white;
+        border: none;
+        padding: 0 1.5rem;
+        border-radius: 0 8px 8px 0;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 112, 243, 0.3);
+    }
+    
+    .search-box button:hover {
+        background: linear-gradient(145deg, #005bd1, #004db3);
+        box-shadow: 0 4px 8px rgba(0, 112, 243, 0.4);
+    }
+    
+    
+    .stock-table-container {
+        overflow-x: auto;
+        border-radius: 8px;
+        background-color: #fafcff;
+    }
+    
+    .stock-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .stock-table th {
+        text-align: left;
+        padding: 1rem;
+        background-color: #f0f6ff;
+        border-bottom: 2px solid #d1e5ff;
+        color: #3b4cb8;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    
+    .stock-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #e7f0ff;
+        color: #2d3748;
+    }
+    
+    .stock-table tbody tr:hover {
+        background-color: #f0f8ff;
+    }
+    
+    .symbol-cell {
+        font-weight: 600;
+        color: #3b4cb8;
+    }
+    
+    .price-cell {
+        color: #38a169;
+        font-weight: 600;
+        background: linear-gradient(145deg, #38a169, #2f855a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .action-group {
+        display: flex;
+        gap: 0.8rem;
+    }
+    
+    .table-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 3rem 0;
+        color: #a0aec0;
+        background: linear-gradient(145deg, #f8faff, #f0f6ff);
+        border-radius: 8px;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #a1c3fc;
+    }
+    
+    .empty-state p {
+        margin-bottom: 1.5rem;
+        color: #718096;
+    }
+    
+    .populate-btn-large {
+        background: linear-gradient(145deg, #38a169, #2f855a);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 8px rgba(47, 133, 90, 0.2);
+    }
+    
+    .populate-btn-large:hover {
+        background: linear-gradient(145deg, #2f855a, #276749);
+        box-shadow: 0 6px 12px rgba(47, 133, 90, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    
+    @media (max-width: 768px) {
+        .welcome-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .stock-grid {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+        
+        .section-header {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .stock-count {
+            margin-right: 0;
+        }
+    }
+</style>
+{% endblock %}

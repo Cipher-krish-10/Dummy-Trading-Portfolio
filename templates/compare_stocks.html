@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Compare Stocks{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Stock Comparison</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">Price Comparison (1 Year)</div>
+        <div class="card-body">
+            <canvas id="comparisonChart" width="100%" height="400"></canvas>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <form action="{{ url_for('compare_stocks') }}" method="get" class="form-inline">
+                <div class="form-group mr-2">
+                    <input type="text" class="form-control" name="symbols" placeholder="AAPL,MSFT,GOOGL" value="{{ ','.join(tickers) }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Compare</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('comparisonChart').getContext('2d');
+    
+    // Prepare datasets
+    var datasets = [];
+    var colors = [
+        {bg: 'rgba(75, 192, 192, 0.2)', border: 'rgba(75, 192, 192, 1)'},
+        {bg: 'rgba(54, 162, 235, 0.2)', border: 'rgba(54, 162, 235, 1)'},
+        {bg: 'rgba(255, 99, 132, 0.2)', border: 'rgba(255, 99, 132, 1)'},
+        {bg: 'rgba(255, 206, 86, 0.2)', border: 'rgba(255, 206, 86, 1)'},
+        {bg: 'rgba(153, 102, 255, 0.2)', border: 'rgba(153, 102, 255, 1)'},
+        {bg: 'rgba(255, 159, 64, 0.2)', border: 'rgba(255, 159, 64, 1)'}
+    ];
+    
+    {% for ticker in tickers %}
+    datasets.push({
+        label: '{{ ticker }}',
+        data: {{ chart_data.stocks[ticker]|tojson }},
+        backgroundColor: colors[{{ loop.index0 % colors|length }}].bg,
+        borderColor: colors[{{ loop.index0 % colors|length }}].border,
+        borderWidth: 1
+    });
+    {% endfor %}
+    
+    var comparisonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_data.dates|tojson }},
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: false
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}My Watchlist{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Watchlist</h2>
+        <div>
+            <a href="{{ url_for('view_transactions') }}" class="btn btn-outline-primary mr-2">
+                <i class="fas fa-history"></i> Transaction History
+            </a>
+            <a href="{{ url_for('view_portfolio') }}" class="btn btn-outline-primary mr-2">
+                <i class="fas fa-briefcase"></i> My Portfolio
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Watchlist Summary</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="summary-card">
+                                <div class="summary-icon watchlist-icon">
+                                    <i class="fas fa-eye"></i>
+                                </div>
+                                <div class="summary-detail">
+                                    <h3>{{ watchlist_count }}</h3>
+                                    <p>Stocks Being Watched</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="summary-card">
+                                <div class="summary-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="summary-detail">
+                                    <h3>Potential Investments</h3>
+                                    <p>Track before investing</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Watched Stocks ({{ watchlist_count }})</span>
+                    <form action="{{ url_for('search_stock') }}" method="post" class="d-flex search-form">
+                        <input type="text" class="form-control mr-2" placeholder="Find stock by symbol" name="ticker">
+                        <button type="submit" class="btn btn-success">Find Stock</button>
+                    </form>
+                </div>
+                <div class="card-body">
+                    {% if watchlist_stocks %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Company</th>
+                                    <th>Current Price</th>
+                                    <th>Sector</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock in watchlist_stocks %}
+                                <tr>
+                                    <td>{{ stock.ticker_symbol }}</td>
+                                    <td>{{ stock.company_name }}</td>
+                                    <td>${{ "%.2f"|format(stock.current_price) }}</td>
+                                    <td>{{ stock.market_sector }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('add_to_portfolio', ticker=stock.ticker_symbol) }}" 
+                                               class="btn btn-sm btn-success" onclick="return confirm('Add this stock to your portfolio?')">
+                                                <i class="fas fa-plus"></i> Add to Portfolio
+                                            </a>
+                                            <a href="{{ url_for('remove_from_watchlist', ticker=stock.ticker_symbol) }}" 
+                                               class="btn btn-sm btn-danger" onclick="return confirm('Remove this stock from your watchlist?')">
+                                                <i class="fas fa-times"></i> Remove
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-watchlist">
+                        <div class="empty-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h3>Your Watchlist is Empty</h3>
+                        <p>Add stocks to your watchlist to track potential investments.</p>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Browse Stocks</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .search-form {
+        width: 350px;
+    }
+    .summary-card {
+        display: flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    .summary-icon {
+        font-size: 2rem;
+        color: #3182ce;
+        margin-right: 15px;
+        width: 50px;
+        height: 50px;
+        background-color: rgba(49, 130, 206, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    .watchlist-icon {
+        color: #805ad5;
+        background-color: rgba(128, 90, 213, 0.1);
+    }
+    .summary-detail h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #2d3748;
+    }
+    .summary-detail p {
+        margin: 0;
+        color: #718096;
+        font-size: 14px;
+    }
+    .empty-watchlist {
+        text-align: center;
+        padding: 50px 20px;
+    }
+    .empty-icon {
+        font-size: 3rem;
+        color: #a0aec0;
+        margin-bottom: 20px;
+    }
+    .empty-watchlist h3 {
+        color: #2d3748;
+        margin-bottom: 10px;
+    }
+    .empty-watchlist p {
+        color: #718096;
+        margin-bottom: 20px;
+    }
+    .btn-group {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .d-flex {
+        display: flex;
+    }
+    .justify-content-between {
+        justify-content: space-between;
+    }
+    .align-items-center {
+        align-items: center;
+    }
+    .mr-2 {
+        margin-right: 0.5rem;
+    }
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
+    .mb-2 {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %} 

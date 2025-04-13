@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block title %}Transaction History{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Transaction History</h2>
+        <div>
+            <a href="{{ url_for('view_portfolio') }}" class="btn btn-outline-primary mr-2">
+                <i class="fas fa-briefcase"></i> My Portfolio
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Transaction Summary</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="summary-card">
+                                <div class="summary-icon">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                                <div class="summary-detail">
+                                    <h3>{{ summary.total_transactions }}</h3>
+                                    <p>Total Transactions</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="summary-card">
+                                <div class="summary-icon buy-icon">
+                                    <i class="fas fa-cart-plus"></i>
+                                </div>
+                                <div class="summary-detail">
+                                    <h3>${{ "%.2f"|format(summary.total_buys or 0) }}</h3>
+                                    <p>Total Buy Value</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="summary-card">
+                                <div class="summary-icon sell-icon">
+                                    <i class="fas fa-cart-arrow-down"></i>
+                                </div>
+                                <div class="summary-detail">
+                                    <h3>${{ "%.2f"|format(summary.total_sells or 0) }}</h3>
+                                    <p>Total Sell Value</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% if has_brokerage_fee %}
+                        <div class="col-md-3">
+                            <div class="summary-card">
+                                <div class="summary-icon fee-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="summary-detail">
+                                    <h3>${{ "%.2f"|format(summary.total_brokerage_fees or 0) }}</h3>
+                                    <p>Total Brokerage Fees</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>All Transactions</span>
+                </div>
+                <div class="card-body">
+                    {% if transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Symbol</th>
+                                    <th>Company</th>
+                                    <th>Transaction</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                    <th>Broker</th>
+                                    <th>Brokerage Fee</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr class="{{ 'buy-row' if transaction.transaction_type == 'BUY' else 'sell-row' }}">
+                                    <td>{{ transaction.transaction_date }}</td>
+                                    <td>{{ transaction.ticker_symbol }}</td>
+                                    <td>{{ transaction.company_name }}</td>
+                                    <td>
+                                        <span class="badge {{ 'bg-success' if transaction.transaction_type == 'BUY' else 'bg-danger' }}">
+                                            {{ transaction.transaction_type }}
+                                        </span>
+                                    </td>
+                                    <td>{{ transaction.quantity }}</td>
+                                    <td>${{ "%.2f"|format(transaction.price) }}</td>
+                                    <td>${{ "%.2f"|format(transaction.price * transaction.quantity) }}</td>
+                                    <td>
+                                        {% if transaction.broker_name %}
+                                            {{ transaction.broker_name }}
+                                        {% else %}
+                                            <span class="text-muted">Not specified</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if transaction.brokerage_fee %}
+                                            ${{ "%.2f"|format(transaction.brokerage_fee) }}
+                                        {% else %}
+                                            $0.00
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-transactions">
+                        <div class="empty-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <h3>No Transactions Yet</h3>
+                        <p>Add or remove stocks in your portfolio to see transaction history.</p>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Browse Stocks</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <span>Brokerage Fee Information</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Broker</th>
+                                    <th>Fee Percentage</th>
+                                    <th>Example Fee on $1000 Trade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for broker in broker_fees %}
+                                <tr>
+                                    <td>{{ broker.broker_name }}</td>
+                                    <td>
+                                        {% if broker.brokerage_percentage %}
+                                            {{ broker.brokerage_percentage }}%
+                                        {% else %}
+                                            <span class="text-muted">Not specified</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if broker.brokerage_percentage %}
+                                            ${{ "%.2f"|format(1000 * broker.brokerage_percentage / 100) }}
+                                        {% else %}
+                                            $0.00
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .summary-card {
+        display: flex;
+        align-items: center;
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    .summary-icon {
+        font-size: 2rem;
+        color: #3182ce;
+        margin-right: 15px;
+        width: 50px;
+        height: 50px;
+        background-color: rgba(49, 130, 206, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    .buy-icon {
+        color: #38a169;
+        background-color: rgba(56, 161, 105, 0.1);
+    }
+    .sell-icon {
+        color: #e53e3e;
+        background-color: rgba(229, 62, 62, 0.1);
+    }
+    .fee-icon {
+        color: #805ad5;
+        background-color: rgba(128, 90, 213, 0.1);
+    }
+    .summary-detail h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #2d3748;
+    }
+    .summary-detail p {
+        margin: 0;
+        color: #718096;
+        font-size: 14px;
+    }
+    .badge {
+        padding: 0.5em 0.75em;
+        font-weight: 500;
+    }
+    .bg-success {
+        background-color: #38a169;
+    }
+    .bg-danger {
+        background-color: #e53e3e;
+    }
+    .empty-transactions {
+        text-align: center;
+        padding: 50px 20px;
+    }
+    .empty-icon {
+        font-size: 3rem;
+        color: #a0aec0;
+        margin-bottom: 20px;
+    }
+    .empty-transactions h3 {
+        color: #2d3748;
+        margin-bottom: 10px;
+    }
+    .empty-transactions p {
+        color: #718096;
+        margin-bottom: 20px;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .d-flex {
+        display: flex;
+    }
+    .justify-content-between {
+        justify-content: space-between;
+    }
+    .align-items-center {
+        align-items: center;
+    }
+    .mr-2 {
+        margin-right: 0.5rem;
+    }
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %} 

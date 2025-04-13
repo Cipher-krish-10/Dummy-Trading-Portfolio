@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ ticker }} Stock Data{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{{ ticker }} - {{ info.shortName }}</h1>
+        <div>
+            <a href="{{ url_for('dividend_data', ticker=ticker) }}" class="btn btn-success mr-2">
+                <i class="fas fa-money-bill-wave"></i> Dividend Data
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">Stock Information</div>
+                <div class="card-body">
+                    <p><strong>Current Price:</strong> ${{ info.currentPrice|round(2) }}</p>
+                    <p><strong>Previous Close:</strong> ${{ info.previousClose|round(2) }}</p>
+                    <p><strong>Open:</strong> ${{ info.open|round(2) }}</p>
+                    <p><strong>Day's Range:</strong> ${{ info.dayLow|round(2) }} - ${{ info.dayHigh|round(2) }}</p>
+                    <p><strong>52 Week Range:</strong> ${{ info.fiftyTwoWeekLow|round(2) }} - ${{ info.fiftyTwoWeekHigh|round(2) }}</p>
+                    <p><strong>Market Cap:</strong> ${{ (info.marketCap / 1000000000)|round(2) }} B</p>
+                    <p><strong>Volume:</strong> {{ info.volume }}</p>
+                    <p><strong>Avg. Volume:</strong> {{ info.averageVolume }}</p>
+                    <p><strong>P/E Ratio:</strong> {{ info.trailingPE|round(2) }}</p>
+                    <p><strong>EPS:</strong> ${{ info.trailingEps|round(2) }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">Price History (1 Year)</div>
+                <div class="card-body">
+                    <canvas id="priceChart" width="100%" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">Volume History</div>
+                <div class="card-body">
+                    <canvas id="volumeChart" width="100%" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">Recent News</div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for item in news[:5] %}
+                            <a href="{{ item.link }}" class="list-group-item list-group-item-action" target="_blank">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ item.title }}</h5>
+                                    <small>{{ item.providerPublishTime|timestamp_to_date }}</small>
+                                </div>
+                                <p class="mb-1">{{ item.publisher }}</p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="{{ url_for('compare_stocks', symbols=ticker+',MSFT,GOOGL') }}" class="btn btn-info">Compare with Other Stocks</a>
+            <a href="{{ url_for('add_to_portfolio', ticker=ticker) }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add to Portfolio
+            </a>
+            <a href="{{ url_for('view_portfolio') }}" class="btn btn-outline-primary">
+                <i class="fas fa-briefcase"></i> View Portfolio
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Price chart
+    var priceCtx = document.getElementById('priceChart').getContext('2d');
+    var priceChart = new Chart(priceCtx, {
+        type: 'line',
+        data: {
+            labels: {{ hist_data.dates|tojson }},
+            datasets: [{
+                label: '{{ ticker }} Price',
+                data: {{ hist_data.prices|tojson }},
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: false
+                }
+            }
+        }
+    });
+    
+    // Volume chart
+    var volumeCtx = document.getElementById('volumeChart').getContext('2d');
+    var volumeChart = new Chart(volumeCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ hist_data.dates|tojson }},
+            datasets: [{
+                label: 'Volume',
+                data: {{ hist_data.volumes|tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

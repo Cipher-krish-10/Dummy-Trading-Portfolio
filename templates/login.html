@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Dummy Portfolio - Login{% endblock %}
+
+{% block content %}
+<div class="login-page">
+    <div class="login-container">
+        <div class="row">
+            <div class="col-md-6 marketing-content">
+                {% if show_marketing %}
+                <div class="hero-content">
+                    <h1>Invest Smarter</h1>
+                    <p class="subtitle">Your all-in-one platform for intelligent investment management</p>
+                    <div class="feature-highlights">
+                        <div class="feature-item">
+                            <i class="fas fa-chart-line feature-icon-small"></i>
+                            <span>Portfolio Dashboard</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-search feature-icon-small"></i>
+                            <span>Stock Discovery</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-exchange-alt feature-icon-small"></i>
+                            <span>Transaction Tracking</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-eye feature-icon-small"></i>
+                            <span>Smart Watchlists</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6">
+                <div class="login-form">
+                    <h2>Log in to your account</h2>
+                    <form method="post" action="{{ url_for('login') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            {{ form.username(class="form-control", placeholder="Username", id="username") }}
+                            {% if form.username.errors %}
+                            <ul class="errors">
+                                {% for error in form.username.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            {{ form.password(class="form-control", placeholder="Password", id="password") }}
+                            {% if form.password.errors %}
+                            <ul class="errors">
+                                {% for error in form.password.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form.submit(class="btn btn-primary btn-block") }}
+                        </div>
+                    </form>
+                    <div class="login-footer">
+                        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+                        <hr>
+                        <a href="{{ url_for('admin_login') }}" class="btn btn-outline-secondary btn-block">Admin Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if show_marketing %}
+    <div class="testimonial-section">
+        <h2>What Our Investors Say</h2>
+        <div class="testimonials">
+            <div class="testimonial">
+                <p>"This platform transformed how I manage my investments. The intuitive interface makes portfolio tracking effortless."</p>
+                <div class="testimonial-author">- Michael R.</div>
+            </div>
+            <div class="testimonial">
+                <p>"The dividend tracking feature alone has saved me hours of spreadsheet work. Absolutely worth it!"</p>
+                <div class="testimonial-author">- Sarah T.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-section">
+        <h2>Ready to optimize your investments?</h2>
+        <p>Join thousands of investors who've improved their returns with our platform</p>
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-large">Create Free Account</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

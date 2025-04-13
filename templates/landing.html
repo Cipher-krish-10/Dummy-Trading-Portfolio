@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Investment Platform - Your Financial Future{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+    <div class="hero-section">
+        <h1>Invest Smarter</h1>
+        <p class="subtitle">Your all-in-one platform for intelligent investment management</p>
+        <div class="cta-buttons">
+            <a href="{{ url_for('login') }}" class="btn btn-primary">Log In</a>
+            <a href="{{ url_for('register') }}" class="btn btn-outline">Get Started</a>
+        </div>
+    </div>
+
+    <div class="features-section">
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Portfolio Dashboard</h3>
+            <p>Real-time visualization of your investments with interactive charts</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-search"></i></div>
+            <h3>Stock Discovery</h3>
+            <p>Find high-potential investment opportunities with advanced filters</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-exchange-alt"></i></div>
+            <h3>Transaction Tracking</h3>
+            <p>Seamless monitoring of all your investment activities</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-eye"></i></div>
+            <h3>Smart Watchlists</h3>
+            <p>Create custom watchlists with price alerts and notifications</p>
+        </div>
+    </div>
+
+    <div class="testimonial-section">
+        <h2>What Our Investors Say</h2>
+        <div class="testimonials">
+            <div class="testimonial">
+                <p>"This platform transformed how I manage my investments. The intuitive interface makes portfolio tracking effortless."</p>
+                <div class="testimonial-author">- Michael R.</div>
+            </div>
+            <div class="testimonial">
+                <p>"The dividend tracking feature alone has saved me hours of spreadsheet work. Absolutely worth it!"</p>
+                <div class="testimonial-author">- Sarah T.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-section">
+        <h2>Ready to optimize your investments?</h2>
+        <p>Join thousands of investors who've improved their returns with our platform</p>
+        <a href="{{ url_for('register') }}" class="btn btn-primary btn-large">Create Free Account</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Search Results{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Search Results</h2>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">Back to Dashboard</a>
+    </div>
+    
+    <div class="alert alert-info">
+        Found {{ result_count }} results for "{{ search_term }}" out of {{ stock_count }} stocks in database.
+    </div>
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Search Results</span>
+            <form action="{{ url_for('search_database_stocks') }}" method="post" class="d-flex search-form">
+                <input type="text" class="form-control mr-2" placeholder="Search stocks..." name="search_term" value="{{ search_term }}" required>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+        <div class="card-body">
+            {% if stocks %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Company</th>
+                            <th>Price</th>
+                            <th>Sector</th>
+                            <th>Last Updated</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in stocks %}
+                        <tr>
+                            <td>{{ stock.ticker_symbol }}</td>
+                            <td>{{ stock.company_name }}</td>
+                            <td>${{ stock.current_price }}</td>
+                            <td>{{ stock.market_sector }}</td>
+                            <td>{{ stock.last_updated }}</td>
+                            <td>
+                                <a href="{{ url_for('add_to_portfolio', ticker=stock.ticker_symbol) }}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-plus"></i> Add
+                                </a>
+                                <a href="{{ url_for('add_to_watchlist', ticker=stock.ticker_symbol) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Watch
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No stocks found matching your search criteria.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .search-form {
+        width: 350px;
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .mr-2 {
+        margin-right: 0.5rem;
+    }
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
+    .d-flex {
+        display: flex;
+    }
+    .justify-content-between {
+        justify-content: space-between;
+    }
+    .align-items-center {
+        align-items: center;
+    }
+</style>
+{% endblock %} 

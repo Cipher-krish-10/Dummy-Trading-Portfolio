@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Dividend Income{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-money-bill-wave text-success"></i> Dividend Income Portfolio</h2>
+        <div>
+            <a href="{{ url_for('update_dividend_history') }}" class="btn btn-success mr-2">
+                <i class="fas fa-sync-alt"></i> Update Dividend Data
+            </a>
+            <a href="{{ url_for('view_portfolio') }}" class="btn btn-outline-primary mr-2">
+                <i class="fas fa-briefcase"></i> Back to Portfolio
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-chart-pie"></i> Dividend Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="summary-item">
+                        <span class="summary-label">Portfolio Value:</span>
+                        <span class="summary-value">${{ "%.2f"|format(portfolio_value) }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Annual Dividend Income:</span>
+                        <span class="summary-value text-success">${{ "%.2f"|format(total_annual_dividend) }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Portfolio Dividend Yield:</span>
+                        <span class="summary-value {% if portfolio_dividend_yield > 3 %}text-success{% endif %}">
+                            {{ "%.2f"|format(portfolio_dividend_yield) }}%
+                        </span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Monthly Income (Est.):</span>
+                        <span class="summary-value">${{ "%.2f"|format(total_annual_dividend/12) }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Quarterly Income (Est.):</span>
+                        <span class="summary-value">${{ "%.2f"|format(total_annual_dividend/4) }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span class="summary-label">Stocks Paying Dividends:</span>
+                        <span class="summary-value">{{ dividend_data|selectattr('dividend_yield', '>', 0)|list|length }}/{{ dividend_data|length }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-table"></i> Dividend Portfolio</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Stock</th>
+                                    <th>Shares</th>
+                                    <th>Value</th>
+                                    <th>Yield</th>
+                                    <th>Annual Rate</th>
+                                    <th>Frequency</th>
+                                    <th>Annual Income</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock in dividend_data|sort(attribute='annual_income', reverse=true) %}
+                                <tr {% if stock.dividend_yield == 0 %}class="text-muted"{% endif %}>
+                                    <td>
+                                        <a href="{{ url_for('dividend_data', ticker=stock.ticker) }}" 
+                                           class="font-weight-bold {% if stock.dividend_yield == 0 %}text-muted{% endif %}">
+                                            {{ stock.ticker }}
+                                        </a>
+                                        <div class="small">{{ stock.company_name }}</div>
+                                    </td>
+                                    <td>{{ "%.0f"|format(stock.quantity) }}</td>
+                                    <td>${{ "%.2f"|format(stock.stock_value) }}</td>
+                                    <td class="{% if stock.dividend_yield > 3 %}text-success font-weight-bold{% endif %}">
+                                        {{ "%.2f"|format(stock.dividend_yield) }}%
+                                    </td>
+                                    <td>${{ "%.2f"|format(stock.annual_dividend_rate) }}</td>
+                                    <td>
+                                        {% if stock.payment_frequency == 12 %}
+                                            Monthly
+                                        {% elif stock.payment_frequency == 4 %}
+                                            Quarterly
+                                        {% elif stock.payment_frequency == 2 %}
+                                            Semi-Annual
+                                        {% elif stock.payment_frequency == 1 %}
+                                            Annual
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-success font-weight-bold">
+                                        ${{ "%.2f"|format(stock.annual_income) }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .summary-item {
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 8px;
+    }
+    .summary-label {
+        font-weight: 600;
+        color: #555;
+    }
+    .summary-value {
+        font-weight: 600;
+    }
+    .text-success {
+        color: #28a745;
+    }
+    .text-muted {
+        color: #6c757d;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    
+</script>
+{% endblock %} 
