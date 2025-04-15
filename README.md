@@ -1,4 +1,4 @@
-Trading Portfolio Management App
+# InvestTrack - Investment Portfolio Management App
 
 A sleek, modern web application for tracking and managing investment portfolios, stocks, and dividends.
 
